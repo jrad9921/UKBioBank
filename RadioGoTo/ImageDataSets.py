@@ -247,7 +247,7 @@ def MRI_dataset_prepare(paths, file_ext, output_path, modality="MRI", preprocess
                 pads[0], pads[1]=pad_2//2, (pad_2//2) + 1
             print (pads)
             img[i]=torch.nn.functional.pad(input=im, pad= pads, mode="constant", value=0.)
-            tns.create_dataset(name=pts[i], data=img[i])
+            tns.create_dataset(name=pts[i], data=img[i], dtype= "(2,2)f") #Arrays
         h5f.close()
         return "Extraction completed! :)"
  ####################################################   
