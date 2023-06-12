@@ -1,4 +1,4 @@
-#%%
+
 import os
 import pandas as pd
 import pydicom as pyd
@@ -7,7 +7,7 @@ import zipfile
 import nibabel as nib
 import shutil
 ###################################################################
-#%%
+
 
 def read_dicom_series(image_folder, modality=None, series_uid=None):
 
@@ -80,7 +80,7 @@ def read_dicom_series(image_folder, modality=None, series_uid=None):
         voxel_grid[ii, :, :] = slice_grid
 
     return voxel_grid
-#%%
+
 def read_nifti_zip(in_path, out_path, file_string):
     print(in_path)
     with zipfile.ZipFile(in_path) as fil:
@@ -161,7 +161,7 @@ def read_dicom_series_zip(zip_folder, modality= None, series_uid=None):
 
     return voxel_grid
 ################################################################################################################################
-#%%
+
 def get_dicom_tag(dcm_seq, tag, tag_type=None, default=None, test_tag=False):
     """
     Function used to retrieve single metadata tags from a dicom sequence
