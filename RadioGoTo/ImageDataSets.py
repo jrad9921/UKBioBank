@@ -1,4 +1,4 @@
-#%%i
+
 import os
 import numpy as np
 from ImageImport import read_dicom_series, read_dicom_series_zip, read_nifti_zip
@@ -10,8 +10,6 @@ import helpers
 import h5py
 from pathlib import Path
 ########################################################################
-#%%
-
 #Initially from brannislav1991 on GitHub:
 class ImageDataSetH5(Dataset):
 
@@ -175,9 +173,10 @@ def CT_dataset_prepare(paths, file_ext, output_path, modality="CT", preprocess_s
             for im in paths:
                 img.append(read_nifti_zip(in_path=im, out_path=output_path, file_string= pattern))
         
-        return np.save(output_path, img)
+        return np.save(output_path, img) #To change to h5
     
-#%%
+###############################################
+
 def MRI_dataset_prepare(paths, file_ext, output_path, modality="MRI", preprocess_steps= None, zipped=False, pattern=None, mask=False):
     if file_ext not in ["dcm", "DICOM",".nii","nii",".nii.gz","nii.gz","nifti"]:
         raise ValueError("The extension of the files is not any of the correct ones, it should be: dcm, DICOM, nii, nii.gz, nifti ")
@@ -192,19 +191,19 @@ def MRI_dataset_prepare(paths, file_ext, output_path, modality="MRI", preprocess
     if preprocess_steps == None:
         if file_ext in ["dcm","DICOM"] and zipped ==False:
             img=[]
-            output_path= os.path.join(output_path, "experiment_no_pre.h5")
+            output_path_1= os.path.join(output_path, "experiment_no_pre.h5")
             for im in paths:
                 img.append(read_dicom_series(image_folder=im, modality= modality))
 
         if file_ext in ["dcm","DICOM"] and zipped ==True:
             img=[]
-            output_path= os.path.join(output_path, "experiment_no_pre.h5")
+            output_path_1= os.path.join(output_path, "experiment_no_pre.h5")
             for im in paths:
                 img.append(read_dicom_series_zip(image_folder=im, modality= modality))   
                 
         if file_ext in ["nii", "nii.gz", "nifti"] and zipped != True:
             img= []
-            output_path= os.path.join(output_path, "experiment_no_pre.h5")
+            output_path_1= os.path.join(output_path, "experiment_no_pre.h5")
             
             for im in paths:
                 img.append(nib.load(im))
@@ -213,12 +212,16 @@ def MRI_dataset_prepare(paths, file_ext, output_path, modality="MRI", preprocess
         if file_ext in ["nii", "nii.gz", "nifti"] and zipped == True:
             img= []
             
-            output_path= os.path.join(output_path,"experiment_no_pre.h5")
-            h5f= h5py.File(output_path,"w")
+            output_path_1= os.path.join(output_path,"experiment_no_pre.h5")
+            output_path_2 = os.path.join(output_path,"Temp_Images")
+            os.mkdir(path=output_path_2)
+            
+            h5f= h5py.File(output_path_1,"w")
+
             tns = h5f.create_group("Tensors")
-            pts=paths
+            pts=paths.copy() #If not the entire thing is deleted and does not work
             for im in paths:
-                 a, b = read_nifti_zip(in_path=im, out_path=output_path, file_string= pattern)
+                 a, b = read_nifti_zip(in_path=im, out_path=output_path_2, file_string= pattern)
                  if b=="1":
                     img.append(torch.from_numpy(a))
                  else: pts.remove(im) 
@@ -234,9 +237,8 @@ def MRI_dataset_prepare(paths, file_ext, output_path, modality="MRI", preprocess
             pad_2= int(dim3 - im.shape[2])
             pad_0= int(dim1 - im.shape[0])
             pad_1= int(dim2 - im.shape[1])
-
+            #Add padding for both even and uneven slice differences
             pads= [pad_2//2,pad_2//2,pad_1//2,pad_1//2,pad_0//2,pad_0//2]
-            print(pads)
             if pad_0 % 2 !=0:
                 pads[4], pads[5]=pad_0//2, (pad_0//2) + 1
             if pad_1%2 !=0:
@@ -248,7 +250,8 @@ def MRI_dataset_prepare(paths, file_ext, output_path, modality="MRI", preprocess
             tns.create_dataset(name=pts[i], data=img[i])
         h5f.close()
         return "Extraction completed! :)"
-#%%    
+ ####################################################   
+
 def PET_dataset_prepare(paths, file_ext, output_path, modality="PET", preprocess_steps= None):
     if file_ext not in ["dcm", "DICOM","nii","nii.gz","nifti"]:
         raise ValueError("The extension of the files is not any of the correct ones, it should be: dcm, DICOM, nii, nii.gz, nifti ")
