@@ -1,2 +1,2 @@
-# UKBio_Brain
-Repository to incorporate code for the Brain projects
+# UKBioBank
+Repository to incorporate code and results for projects related to UKBioBank.
